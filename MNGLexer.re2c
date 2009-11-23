@@ -1,0 +1,124 @@
+/*
+ *  MNGLexer.re2c
+ *  creatures-munge
+ *
+ *  Copyright (c) 2009 Michael Maltese. All rights reserved.
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ */
+
+#include "MNGLexer.h"
+
+MNGLexer::MNGLexer (const char *buf)
+{
+	mng_parse_p = buf;
+	lineno = 1;
+	tok = INTERN_LEX;
+	
+  assert(mng_parse_p);
+}
+
+unsigned int MNGLexer::getLineNumber ()
+{
+  return lineno;
+}
+
+float MNGLexer::getNumber ()
+{
+  return number;
+}
+
+string MNGLexer::getString ()
+{
+  return str;
+}
+
+string MNGLexer::getMessage ()
+{
+  return message;
+}
+
+MNGLexer::Token MNGLexer::token()
+{
+  assert (tok != INTERN_LEX);
+
+  return tok;
+}
+
+bool MNGLexer::next()
+{
+	const char *basep;
+	const char *YYMARKER;
+	
+start:
+	basep = mng_parse_p;
+	
+	/*!re2c
+	   re2c:define:YYCTYPE = "unsigned char";
+	   re2c:define:YYCURSOR = mng_parse_p;
+	   re2c:yyfill:enable = 0;
+	   re2c:yych:conversion = 1;
+	   re2c:indent:top = 1;
+
+	   any = [\001-\377];
+	   eoi = [\000];
+	   comment = "//"[^\r\n\000]*;
+	   whitespace = ( comment | [ \t\r] ) *;
+	   newline = [\n];
+	   letter = [A-Za-z];
+	   digit = [0-9];
+	   
+	   string = letter (letter | digit)*;
+	   number = [-]? digit+ [.]? digit*;
+	   comma = [,];
+	   operator = [=];
+	   lparen = "(";
+	   rparen = ")";
+	   lbrace = "{";
+	   rbrace = "}";
+
+	   eoi { tok = EOI; return true; }
+	   whitespace { goto start; }
+	   newline { lineno++; goto start; }
+
+     string
+     {
+       string.clear();
+		   string.append(basep, mng_parse_p - basep);
+		   token = STRING;
+		   return true;
+     }
+     
+     operator
+     {
+       string.clear();
+       string.append(basep, mng_parse_p - basep);
+       token = OPERATOR;
+       return true;
+     }
+     
+     number
+     {
+       number = atof(basep);
+       token = NUMBER;
+       return true;
+     }
+     
+     comma { token = COMMA; return true; }
+     lparen { token = LPAREN; return true; }
+     rparen { token = RPAREN; return true; }
+     lbrace { token = LBRACE; return true; }
+     rbrace { token = RBRACE; return true; }
+     
+	   any { message = "Unrecognized character"; return false; }
+	*/
+}
