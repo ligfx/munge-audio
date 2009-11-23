@@ -112,6 +112,8 @@ bool MungeFile::Load ()
       samples.insert (make_pair (name, sample_data.front()));
       sample_data.pop_front();
     }
+    foreach (string *datum, sample_data)
+      samples.insert (make_pair ("", datum)); // TODO: Not tested
   }
   else;// TODO
 
