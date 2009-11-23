@@ -29,7 +29,7 @@ struct Node;
 struct FunctionNode;
 struct NameNode;
 struct NumberNode;
-
+typedef boost::variant<FunctionNode, NameNode, NumberNode> ArgNode;
 
 // The actual nodes an AST is made of
 struct Node
@@ -55,6 +55,23 @@ struct NumberNode : public Node
 {
   NumberNode (float f) : number (f) {}
   float number;
+};
+
+// Visitor
+class ASTVisitor
+  : public boost::static_visitor<>
+{
+public:
+  virtual ~ASTVisitor();
+  void operator() (const FunctionNode &n);
+  void operator() (const NameNode &n);
+  void operator() (const NumberNode &n);
+  void visit (const ArgNode &a);
+  
+  virtual void visit (const std::list<FunctionNode>&);
+  virtual void visit (const FunctionNode&);
+  virtual void visit (const NameNode&);
+  virtual void visit (const NumberNode&);
 };
 
 // Helpers

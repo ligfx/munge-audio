@@ -208,3 +208,13 @@ TEST (PrettyPrintingProducesSameParseTreeAndEqualityCheckingWorks)
   
   CHECK (equal(firsttree.begin(), firsttree.end(), secondtree.begin()));
 }
+
+TEST (FindSampleNamesThroughAST)
+{
+  MNGLexer lexer ("Wave (Blah) Add (Wave(Hmm),6.7) Voice { Wave (BobbyJones) }");
+  MNGParser parser (&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (parser.Parse (&tree));
+  
+  
+}

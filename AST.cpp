@@ -39,14 +39,17 @@ public:
 };
 
 class PrettyPrinter
-  : public boost::static_visitor<>
+  : public ASTVisitor
 {
 public:
-  PrettyPrinter (std::ostream&);
+  using ASTVisitor::visit;
 
-  void operator() (const FunctionNode&);
-  void operator() (const NumberNode&);
-  void operator() (const NameNode&);
+  PrettyPrinter (std::ostream&);
+  virtual ~PrettyPrinter() {}
+
+  virtual void visit (const FunctionNode&);
+  virtual void visit (const NumberNode&);
+  virtual void visit (const NameNode&);
   
 protected:
   int indentation;
@@ -56,6 +59,35 @@ protected:
 void PrettyPrint (const std::list<FunctionNode>&, std::ostream &out = std::cout);
 
 // Function definitions
+
+ASTVisitor::~ASTVisitor() {}
+void ASTVisitor::operator() (const FunctionNode &n) { this->visit (n); }
+void ASTVisitor::operator() (const NameNode &n) { this->visit (n); }
+void ASTVisitor::operator() (const NumberNode &n) { this->visit (n); }
+  
+void ASTVisitor::visit (const ArgNode &a)
+{
+  apply_visitor (*this, a);
+}
+
+void ASTVisitor::visit (const std::list<FunctionNode> &block)
+{
+  foreach (FunctionNode n, block)
+    visit (n);
+}
+
+void ASTVisitor::visit (const FunctionNode &f)
+{
+  foreach (ArgNode a, f.args)
+    visit (a);
+  
+  foreach (FunctionNode f, f.block)
+    visit (f);
+}
+
+void ASTVisitor::visit (const NameNode &n) {}
+
+void ASTVisitor::visit (const NumberNode &n) {}
 
 bool FunctionArgEqualityTester::operator()
   (const FunctionNode &a, const FunctionNode &b)
@@ -93,16 +125,17 @@ operator== (const FunctionNode &a, const FunctionNode &b)
 
 PrettyPrinter::PrettyPrinter(ostream &_out) : indentation (0), out(_out) {}
 
-void PrettyPrinter::operator() (const FunctionNode &n)
+void PrettyPrinter::visit (const FunctionNode &n)
 {
   times (indentation) out << "\t";
   
   // Operators are special
   if (n.name == "=")
   {
-    apply_visitor (*this, *n.args.begin());
+    assert (n.args.size() == 2);
+    visit (*n.args.begin());
     out << " " << n.name << " ";
-    apply_visitor (*this, *++n.args.begin());
+    visit (*++n.args.begin());
     out << endl;
     return;
   }
@@ -116,10 +149,10 @@ void PrettyPrinter::operator() (const FunctionNode &n)
     list<variant<FunctionNode, NameNode, NumberNode> >::const_iterator i;
     for (i = n.args.begin(); i != --n.args.end(); ++i)
     {
-      apply_visitor (*this, *i);
+      visit (*i);
       out << ", ";
     }
-    apply_visitor (*this, *--n.args.end());
+    visit (*--n.args.end());
     out << ")";
   }
   out << endl;
@@ -130,8 +163,7 @@ void PrettyPrinter::operator() (const FunctionNode &n)
     out << "{" << endl;
     indentation += 1;
     
-    foreach (const FunctionNode n, n.block)
-     (*this)(n);
+    visit (n.block);
     
     indentation -= 1;
     times (indentation) out << "\t";
@@ -139,12 +171,12 @@ void PrettyPrinter::operator() (const FunctionNode &n)
   }
 }
 
-void PrettyPrinter::operator() (const NumberNode &n)
+void PrettyPrinter::visit (const NumberNode &n)
 {
   out << n.number;
 }
 
-void PrettyPrinter::operator() (const NameNode &n)
+void PrettyPrinter::visit (const NameNode &n)
 {
   out << n.name;
 }
