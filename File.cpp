@@ -39,6 +39,13 @@ MungeFile::MungeFile (istream *_stream)
 
 MungeFile::~MungeFile ()
 {
+  typedef pair<string, string*> Sample;
+  foreach (Sample s, samples)
+  {
+    delete s.second; 
+  }
+  samples.clear();
+
   delete stream;
 }
 
