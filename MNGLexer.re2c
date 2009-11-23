@@ -125,4 +125,5 @@ start:
      
 	   any { message = "Unrecognized character"; return false; }
 	*/
+	// TODO: Nicer errors when lexing "-.87"
 }

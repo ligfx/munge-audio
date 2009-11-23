@@ -21,6 +21,8 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/variant.hpp>
+#include <boost/variant/static_visitor.hpp>
+#include <iostream>
 #include <list>
 
 struct Node;
@@ -28,6 +30,8 @@ struct FunctionNode;
 struct NameNode;
 struct NumberNode;
 
+
+// The actual nodes an AST is made of
 struct Node
 {
   unsigned int lineno;
@@ -52,5 +56,10 @@ struct NumberNode : public Node
   NumberNode (float f) : number (f) {}
   float number;
 };
+
+// Helpers
+bool operator== (const FunctionNode&, const FunctionNode&);
+
+std::ostream &operator<< (std::ostream&, const std::list<FunctionNode>&);
 
 #endif // AST_H

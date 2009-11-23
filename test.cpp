@@ -1,3 +1,4 @@
+#include "AST.h"
 #include <iostream>
 #include "MNGLexer.h"
 #include "MNGParser.h"
@@ -186,4 +187,24 @@ TEST (ParserTreeMakesSense)
       }
     }
   }
+}
+
+TEST (PrettyPrintingProducesSameParseTreeAndEqualityCheckingWorks)
+{
+  MNGLexer lexer ("Add (6, 7) { Main (Hi) P = -0.87 Voice { Volume (0) } }");
+  MNGParser parser (&lexer, "test.cpp");
+  list<FunctionNode> firsttree;
+  CHECK (parser.Parse (&firsttree));
+  
+  stringstream s;
+  s << firsttree;
+  string pp = s.str();
+  const char *script = pp.c_str();
+  
+  lexer = MNGLexer (script);
+  parser = MNGParser (&lexer, "test.cpp");
+  list<FunctionNode> secondtree;
+  CHECK (parser.Parse (&secondtree));
+  
+  CHECK (equal(firsttree.begin(), firsttree.end(), secondtree.begin()));
 }
