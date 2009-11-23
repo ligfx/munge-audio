@@ -19,6 +19,7 @@
 #ifndef MNG_PARSER_H
 #define MNG_PARSER_H
 
+#include "AST.h"
 #include <string>
 
 /**
@@ -62,7 +63,7 @@ class MNGParser
     MNGParser (MNGLexer*, std::string filename);
     virtual ~MNGParser ();
     
-    virtual bool Parse ();
+    virtual bool Parse (std::list<FunctionNode> *tree);
     
     /**
       Error message, if parser failed
@@ -70,14 +71,14 @@ class MNGParser
     virtual std::string getMessage ();
   
   protected:
-    bool ParseTopLevel();
-    bool ParseFunction();
-    bool ParseUnnamedFunction();
-    bool ParseArg();
-    bool ParseOperator();
+    bool ParseTopLevel(std::list<FunctionNode>*);
+    bool ParseFunction(FunctionNode*);
+    bool ParseUnnamedFunction(FunctionNode*);
+    bool ParseArg(boost::variant<FunctionNode, NameNode, NumberNode>*);
+    bool ParseOperator(std::string*);
     bool ParseComma();
-    bool ParseNumber();
-    bool ParseString();
+    bool ParseNumber(float*);
+    bool ParseString(std::string*);
     
     bool LexFail();
     bool expected(std::string);

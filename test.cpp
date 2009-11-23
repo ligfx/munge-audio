@@ -4,6 +4,9 @@
 #include "tests/CppUnitLite2/CppUnitLite2.h"
 #include "tests/CppUnitLite2/TestResultStdErr.h"
 
+using namespace std;
+using namespace boost;
+
 int main()
 {     
     TestResultStdErr result;
@@ -83,7 +86,8 @@ TEST (BooleanParser)
 {
   MNGLexer lexer ("Track (Hi) { Add (P) Glarb { Jack = Random(-1,4) Add (5) } Hit(Nobody) }");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (parser.Parse(&tree));
 }
 
 // TODO: CHECK_NOT_EQUAL
@@ -92,7 +96,8 @@ TEST (ParserExpectedFunctionTopLevel)
 {
   MNGLexer lexer ("(");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
 }
 
@@ -100,7 +105,8 @@ TEST (ParserExpectedFunctionBlockLevel)
 {
   MNGLexer lexer ("Update { 6 }");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
 }
 
@@ -108,7 +114,8 @@ TEST (ParserExpectedArgListBlockOrOperator)
 {
   MNGLexer lexer ("Add )");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Expected argument list, block, or operator") != std::string::npos);
 }
 
@@ -116,7 +123,8 @@ TEST (ParserExpectedCommaBetweenArguments)
 {
   MNGLexer lexer ("Add ( 6 7 )");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Expected comma between arguments") != std::string::npos);
 }
 
@@ -124,7 +132,8 @@ TEST (ParserExpectedNumberVariableNameOrFunction)
 {
   MNGLexer lexer ("Add = ,");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Expected number, variable name, or function") != std::string::npos);
 }
 
@@ -132,6 +141,49 @@ TEST (ParserLexFailUnrecognizedCharacter)
 {
   MNGLexer lexer ("Add &");
   MNGParser parser (&lexer, "test.cpp");
-  CHECK (!parser.Parse());
+  std::list<FunctionNode> tree;
+  CHECK (!parser.Parse(&tree));
   CHECK (parser.getMessage().find ("Unrecognized character") != std::string::npos);
+}
+
+TEST (ParserTreeMakesSense)
+{
+  MNGLexer lexer ("Add (6, 7) { Main (Hi) P = -8.7 }");
+  MNGParser parser (&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (parser.Parse (&tree));
+  
+  CHECK_EQUAL ((unsigned int)1, tree.size());
+  {
+    FunctionNode first = *tree.begin();
+    CHECK_EQUAL ("Add", first.name);
+    CHECK_EQUAL ((unsigned int)2, first.args.size());
+    {
+      NumberNode a = get<NumberNode>(*first.args.begin());
+      CHECK_EQUAL (6, a.number);
+        
+      NumberNode b = get<NumberNode>(*(++first.args.begin()));
+      CHECK_EQUAL (7, b.number);
+    }
+    CHECK_EQUAL ((unsigned int)2, first.block.size());
+    {
+      FunctionNode c = *first.block.begin();
+      CHECK_EQUAL ("Main", c.name);
+      CHECK_EQUAL ((unsigned int)1, c.args.size());
+      {
+        CHECK_EQUAL ("Hi", get<NameNode>(*c.args.begin()).name);
+      }
+      
+      FunctionNode d = *(++first.block.begin());
+      CHECK_EQUAL ("=", d.name);
+      CHECK_EQUAL ((unsigned int)2, d.args.size());
+      {
+        NameNode e = get<NameNode>(*d.args.begin());
+        CHECK_EQUAL ("P", e.name);
+        
+        NumberNode f = get<NumberNode>(*(++d.args.begin()));
+        CHECK_CLOSE (-8.7, f.number, 0.00001);
+      }
+    }
+  }
 }

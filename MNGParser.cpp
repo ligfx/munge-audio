@@ -22,6 +22,8 @@
 #include "MNGParser.h"
 
 using namespace std;
+using boost::shared_ptr;
+using boost::variant;
 
 // Convention: Use this only for the token defs
 typedef MNGLexer Lx;
@@ -53,30 +55,35 @@ string MNGParser::getMessage ()
   loop starts, and then loading new tokens at the _end_ of each parsing block.
 */
 
-bool MNGParser::Parse()
+bool MNGParser::Parse(list<FunctionNode> *tree)
 {
-  return MNGParser::ParseTopLevel();
+  assert (tree);
+  return MNGParser::ParseTopLevel(tree);
 } 
  
-bool MNGParser::ParseTopLevel()
+bool MNGParser::ParseTopLevel(list<FunctionNode> *tree)
 {
   if (!lexer->next()) return LexFail();
   while (lexer->token() != Lx::EOI)
   {
-    if (!ParseFunction()) return false; // Expectation handled inside
+    FunctionNode function;
+    if (!ParseFunction(&function)) return false; // Expectation handled inside
+    tree->push_back (function);
   }
   return true;
 }
 
-bool MNGParser::ParseFunction()
+bool MNGParser::ParseFunction(FunctionNode *node)
 {
   // Parse name
-  if (!ParseString()) return expected ("function");
+  string name;
+  if (!ParseString(&name)) return expected ("function");
+  node->name = name;
   
-  return ParseUnnamedFunction();
+  return ParseUnnamedFunction(node);
 }
 
-bool MNGParser::ParseUnnamedFunction()
+bool MNGParser::ParseUnnamedFunction(FunctionNode *node)
 {
   bool function = false;
  
@@ -89,9 +96,12 @@ bool MNGParser::ParseUnnamedFunction()
     function = true;
     while (lexer->token() != Lx::RPAREN)
     {
-      if (!ParseArg ()) return false; // Expectation handled inside
+      variant<FunctionNode, NameNode, NumberNode> n;
+      if (!ParseArg (&n)) return false; // Expectation handled inside
       if (lexer->token() != Lx::RPAREN) if (!ParseComma()) return expected("comma between arguments");
+      node->args.push_back (n);
     }
+    
     if (!lexer->next()) return LexFail(); // Done with RPAREN
   }
   
@@ -101,31 +111,50 @@ bool MNGParser::ParseUnnamedFunction()
     
     function = true;
     while (lexer->token() != Lx::RBRACE)
-      if (!ParseFunction()) return false; // Expectation handled inside
+    {
+      FunctionNode n;
+      if (!ParseFunction(&n)) return false; // Expectation handled inside
+      node->block.push_back (n);
+    }
+    
     if (!lexer->next()) return LexFail(); // Done with RBRACE
   }
   
   // If it didn't have either args or a block, then it must be an operand
   if (!function)
   {
-    if (!ParseOperator()) return expected("argument list, block, or operator");
-    if (!ParseArg()) return false; // Expectation handled inside
+    string op;
+    variant<FunctionNode, NameNode, NumberNode> n;
+    if (!ParseOperator(&op)) return expected("argument list, block, or operator");
+    if (!ParseArg(&n)) return false; // Expectation handled inside
+    
+    node->args.push_back (NameNode (node->name));
+    node->args.push_back (n);
+    node->name = op;
   }
   
   return true;
 }
 
-bool MNGParser::ParseArg()
+bool MNGParser::ParseArg(variant<FunctionNode, NameNode, NumberNode> *node)
 {
   // An arg can be a string, a number, or a  function (without a block, but that's
   // a bit hard to test)
-  if (lexer->token() == Lx::NUMBER) return ParseNumber(); // Expectation unneeded
+  if (lexer->token() == Lx::NUMBER)
+  {
+    float f;
+    if (!ParseNumber(&f)) return false; // Expectation unneeded
+    *node = NumberNode (f);
+    return true;
+  }
   
   // Problem: Both names *and* functions start with strings =/
   // Solution: have method parse_unnamed_function (name)
   if (lexer->token() == Lx::STRING)
   {
-    if (!ParseString()) return false; // Expectation unneeded
+    string name;
+    if (!ParseString(&name)) return false; // Expectation unneeded
+    FunctionNode f;
     switch (lexer->token())
     {
       // If it looks like a function after the string, then it's a function!
@@ -133,10 +162,14 @@ bool MNGParser::ParseArg()
       case Lx::LPAREN:
       case Lx::LBRACE:
       case Lx::OPERATOR:
-        return ParseUnnamedFunction(); // Expectation handled inside
+        f.name = name;
+        if (!ParseUnnamedFunction(&f)) return false; // Expectation handled inside
+        *node = f;
+        return true;
         
       // Otherwise, it's just a name, and we're good
       default:
+        *node = NameNode (name);
         return true;
     }
   }
@@ -145,10 +178,11 @@ bool MNGParser::ParseArg()
   return expected ("number, variable name, or function");
 }
 
-bool MNGParser::ParseOperator() // Expectation handled outside
+bool MNGParser::ParseOperator(string *op) // Expectation handled outside
 {
   if (lexer->token() != Lx::OPERATOR) return false;
   // std::cout << "Operator: " << lexer->getString() << std::endl;
+  *op = lexer->getString ();
   if (!lexer->next()) return LexFail(); // Done with OPERATOR
   
   return true;
@@ -162,19 +196,21 @@ bool MNGParser::ParseComma() // Expectation handled above
   return true;
 }
 
-bool MNGParser::ParseNumber() // Expectation handled above
+bool MNGParser::ParseNumber(float *f) // Expectation handled above
 {
   if (lexer->token() != Lx::NUMBER) return false;
   // std::cout << "Number: " << lexer->getNumber() << std::endl;
+  *f = lexer->getNumber();
   if (!lexer->next()) return LexFail(); // Done with NUMBER
   
   return true;
 }
 
-bool MNGParser::ParseString() // Expectation handled above
+bool MNGParser::ParseString(string *s) // Expectation handled above
 {
   if (lexer->token() != Lx::STRING) return false;
   // std::cout << "String: " << lexer->getString() << std::endl;
+  *s = lexer->getString();
   if (!lexer->next()) return LexFail(); // Done with STRING
   
   return true;
