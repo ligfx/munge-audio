@@ -1,3 +1,4 @@
+#include <iostream>
 #include "MNGLexer.h"
 #include "MNGParser.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
@@ -125,4 +126,12 @@ TEST (ParserExpectedNumberVariableNameOrFunction)
   MNGParser parser (&lexer, "test.cpp");
   CHECK (!parser.Parse());
   CHECK (parser.getMessage().find ("Expected number, variable name, or function") != std::string::npos);
+}
+
+TEST (ParserLexFailUnrecognizedCharacter)
+{
+  MNGLexer lexer ("Add &");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Unrecognized character") != std::string::npos);
 }

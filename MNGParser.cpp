@@ -180,14 +180,10 @@ bool MNGParser::ParseString() // Expectation handled above
   return true;
 }
 
-bool MNGParser::LexFail()
-{
-  // TODO
-  return false;
-}
-
 bool MNGParser::expected(std::string expects)
 {
+  if (!message.empty()) return false;
+  
   boost::format f ("%s:%i:Expected %s, instead got %s");
   f % filename % lexer->getLineNumber() % expects;
 
@@ -221,52 +217,16 @@ bool MNGParser::expected(std::string expects)
   return false;
 }
 
-#if 0
-fail:
-  int token;
-  s
-    << filename
-    << ":"
-    << lexer->getLineNumber()
-    << ": Expected "
-    << expected
-    << ", instead got ";
-
-  token = lexer->token();
-  switch (token)
-  {
-  case Lx::TAG:
-    s << "'TAG'"; break;
-  case Lx::ARRAY:
-    s << "'ARRAY'"; break;
-  case Lx::OVERRIDE:
-    s << "'OVERRIDE'"; break;
-  case Lx::STR:
-    s << "string"; break;
-  case Lx::INT:
-    s << "integer"; break;
-  case Lx::EOI:
-    s << "end of file"; break;
-  default:
-    assert (false);
-  }
+bool MNGParser::LexFail()
+{
+  boost::format f("%s:%i:%s");
+  f % filename % lexer->getLineNumber();
   
-  message = s.str(); 
-  return false;
+  std::string lexmsg = lexer->getMessage();
+  if (lexmsg.empty()) f % "Lex error";
+  else f % lexmsg;
   
-lexfail:
-  s
-    << filename
-    << ":"
-    << lexer->getLineNumber()
-    << ": ";
-  std::string lexmsg = lexer->getMessage ();
-  if (!lexmsg.empty())
-    s << lexmsg;
-  else
-    s << "Lex error";
-    
-  message = s.str();
+  message = f.str();
+  
   return false;
 }
-#endif // 0
