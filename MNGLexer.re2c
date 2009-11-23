@@ -82,7 +82,7 @@ start:
 	   digit = [0-9];
 	   
 	   string = letter (letter | digit)*;
-	   number = [-]? digit+ [.]? digit*;
+	   number = [-]? digit+ "."? digit*;
 	   comma = [,];
 	   operator = [=];
 	   lparen = "(";

@@ -1,4 +1,5 @@
 #include "MNGLexer.h"
+#include "MNGParser.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
 #include "tests/CppUnitLite2/TestResultStdErr.h"
 
@@ -9,16 +10,10 @@ int main()
     return (result.FailureCount());
 }
 
-struct LexerFixture
+TEST (LexerGivesCorrectTokens)
 {
-  LexerFixture ()
-    : lexer ("Track (Hi) { Volume (-6.7) Hi = Add (6, -7.80} //fg%4") {}
-  
-  MNGLexer lexer;
-};
+  MNGLexer lexer ("Track (Hi) { Volume (-6.7) Hi = Add (6, -7.80} //fg%4");
 
-TEST_F (LexerFixture, LexerGivesCorrectTokens)
-{
   lexer.next();
   CHECK_EQUAL (MNGLexer::STRING, lexer.token());
   CHECK_EQUAL ("Track", lexer.getString());
@@ -81,4 +76,53 @@ TEST_F (LexerFixture, LexerGivesCorrectTokens)
   
   lexer.next();
   CHECK_EQUAL (MNGLexer::EOI, lexer.token());
+}
+
+TEST (BooleanParser)
+{
+  MNGLexer lexer ("Track (Hi) { Add (P) Glarb { Jack = Random(-1,4) Add (5) } Hit(Nobody) }");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (parser.Parse());
+}
+
+// TODO: CHECK_NOT_EQUAL
+
+TEST (ParserExpectedFunctionTopLevel)
+{
+  MNGLexer lexer ("(");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
+}
+
+TEST (ParserExpectedFunctionBlockLevel)
+{
+  MNGLexer lexer ("Update { 6 }");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
+}
+
+TEST (ParserExpectedArgListBlockOrOperator)
+{
+  MNGLexer lexer ("Add )");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Expected argument list, block, or operator") != std::string::npos);
+}
+
+TEST (ParserExpectedCommaBetweenArguments)
+{
+  MNGLexer lexer ("Add ( 6 7 )");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Expected comma between arguments") != std::string::npos);
+}
+
+TEST (ParserExpectedNumberVariableNameOrFunction)
+{
+  MNGLexer lexer ("Add = ,");
+  MNGParser parser (&lexer, "test.cpp");
+  CHECK (!parser.Parse());
+  CHECK (parser.getMessage().find ("Expected number, variable name, or function") != std::string::npos);
 }

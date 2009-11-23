@@ -136,7 +136,7 @@ end
 
 def parse_toplevel
   while @lexer.first != [:eoi]
-    return false unless parse_function
+    return false if !parse_function
   end
   @lexer.shift # eoi
   

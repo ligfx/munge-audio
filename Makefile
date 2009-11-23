@@ -20,7 +20,7 @@ cppunitlite_src = \
 	TestResultStdErr.cpp \
 	Linux/SignalHandler.cpp
 
-test: test.o tests/cppunitlite.a MNGLexer.o
+test: test.o tests/cppunitlite.a MNGLexer.o MNGParser.o
 	$(COMPILER) $(CCFLAGS) -o $@ $^
 
 cppunitlite_objects = $(patsubst %.cpp, tests/CppUnitLite2/%.o, $(cppunitlite_src))
