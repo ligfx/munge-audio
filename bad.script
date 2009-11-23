@@ -1,0 +1,25 @@
+Add
+(
+Divi&de
+){,}
+Multiply
+(6.8, Subtract
+(-7,  
+   0, Woot, Divide)
+{ })
+ %
+$^
+!
+CosineWave(0.9, Pan(5))
+
+Something
+
+()BeatLength(BeatLength(Pan(5){)) // Only throws ArgumentNotExpression once
+AleotoricLayer(WellNow) {
+	UpdateRate(0.6, 8900, 90)
+} 
+
+TempoDelay(SomeVariable = UpdateRate(6), 7) { Dunno,, BeatSynch() 84564 } 
+Wave(,Hi,,,)(),,,,,
+BlockInArg({});,,,,,
+pp({}{))

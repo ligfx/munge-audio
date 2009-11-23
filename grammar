@@ -1,0 +1,126 @@
+toplevel := functionlist
+
+functionlist := function
+functionlist := function functionlist
+
+function := name args
+function := name block
+function := name args block
+function := name operator arg
+
+operator := "="
+
+block := "{" functionlist "}"
+
+args := "(" arglist ")"
+
+arglist := arg
+arglist := arg "," arglist
+
+arg := name
+arg := function
+arg := number
+
+===
+
+TopLevel:
+	Effects*
+	Tracks+
+	VariableDecs*
+
+Effect (name)
+Effect (name) { block }
+Block:
+	Stages+
+
+Stage { block }
+Block:
+	Pan?
+	Volume?
+	(Delay ^ TempoDelay)?
+
+Track ( name ) { block }
+Block:
+	Layer(s)+
+	FadeIn?
+	FadeOut?
+	BeatLength?
+	Volume?
+
+#Layer
+AleotoricLayer
+LoopLayer
+
+AleotoricLayer ( name ) { block }
+Block:
+	Effect(name)?
+	Volume?
+	VariableDec*
+	Update?
+	Voices+
+	(BeatSynch ^ Interval)?
+	// UpdateRate? I don't think this is correct - see the Creatures Wiki article
+
+LoopLayer ( name ) { block }
+Block:
+	Wave
+	Update
+	VariableDec*
+	Volume?
+	Interval?
+	(UpdateRate ^ BeatSynch)? // Not required? What if they aren't there? Just update when starting?
+
+Update { (var = expression)+ //Not '*'? }
+
+Voice { block }
+Block:
+	Wave
+	Interval?
+	Condition* // I've only seen them with one Condition... but why not more?
+	Update?
+
+Variable ( name, expression )
+Name:
+	Interval
+	Volume
+	Pan
+	name
+
+#Expressions
+Add
+Subtract
+Multiply
+Divide
+SineWave
+CosineWave
+Random
+Variable
+number
+
+#Unary ( expression )
+Pan
+Volume
+Delay
+TempoDelay
+FadeIn
+FadeOut
+BeatLength
+BeatSynch
+UpdateRate
+Interval
+
+#Binary ( expression, expression )
+Add
+Subtract
+Multiply
+Divide
+SineWave
+CosineWave
+Random
+
+Condition ( expression, expression, expression )
+
+#Named ( name )
+Wave
+Effect(name)
+

@@ -1,0 +1,76 @@
+The basic unit of music is a Track.
+Typically one track plays at a time.
+In CAOS, use MMSC or RMSC to set the track.
+When the game switches between tracks, it fades out of one and into the other, adhering to the FadeIn and FadeOut properties.
+Tracks may also declare the length of one 'Beat' in seconds with BeatLength.
+A Track may also set an overall Volume.
+
+Example:
+Track (UpperTemple) -- Name - remember this for CAOS
+	{
+	FadeIn (5) -- When the game switches to this track, it will fade in for 5 seconds
+	FadeOut (5) -- When it switches from this track, it will fade out for 5 seconds
+	BeatLength (0.3) -- Sets the length of one 'Beat' to be 0.3 seconds
+	Volume (1.0) -- Full volume
+	
+	...
+	}
+	
+Each Track contains one or more Layers, which all play at the same time.
+There are two types of Layers: LoopLayers and AleotoricLayers.
+
+A LoopLayer plays one sound sample repeatedly, updating volume and direction at regular intervals.
+Wave(sampleName) tells the LoopLayer which sample to play.
+Interval or BeatSynch set the amount of time to pause between playing samples. Interval sets time in seconds, BeatSynch sets time in 'Beats' (see Track:BeatLength).
+An Update block is called when the layer first starts, and thereafter at time intervals set by UpdateRate. Variables may be declared in the LoopLayer to be used in the Update block.
+
+LoopLayer (HighBreath)
+	{
+	Variable (counter, 0.0) -- Declares variable 'counter'
+	Variable (temp, 0.0) -- Declares variable 'temp'
+	Interval (0.1) -- Wait 0.1 seconds after finishing sample before starting again
+	Update
+		{
+		// Gradually, pan around at a random rate
+		temp = Random (0.0, 0.1)
+		counter = Add (counter, temp)
+		Pan = CosineWave (counter, 30)
+		// Scale the volume according to mood
+		Volume = Multiply (Mood, 0.4)
+		Volume = Add (Volume, 0.6)
+		}
+	UpdateRate (0.1) -- Run the Update block every 0.1 seconds
+	Wave (HighBreathG) -- The wave sample this layer plays
+	}
+
+An AleotoricLayer plays one or more Voices in order.
+A layer Volume may be declared.
+Interval or BeatSynch sets how long to wait between each Voice - this may be changed within each Voice. (I'm pretty sure this is between starting a Voice and starting the next one.. I don't think it waits for the first one to finish.)
+
+Each Voice contains an individual Wave (sound sample to be played), with optional Conditions and changes in Interval (or BeatSynch?). If all of the Conditions are not met, the Voice will not be played, and the layer will skip to the next one. (Does a Voice change the Interval if it's Condition is not met?) 
+
+AleotoricLayer(Pad)
+    {
+    // The track sparsely plays pads ranging from the gentle (drm)
+    // for low threat, with harsher (vce) for heigher threats
+    // Volume increases with mood and threat, 
+    // The interval is decreased with threat
+    Volume(0.4)
+    Variable(temp,0.0)
+    Update 
+        {
+        // Volume = 0.5 + 0.25 * (Mood + Threat)
+        temp = Multiply(Mood, 0.25)
+        Volume = Add(0.5,temp) 
+        temp = Multiply(Threat, 0.25)
+        Volume = Add(Volume,temp) 
+        Interval = Random ( 4.0, 6.0 )
+        temp = Multiply( Threat, 2.0)
+        Interval = Subtract( Interval, temp)
+        }
+    …
+
+An AleotoricLayer may also apply an Effect, which is way too confusing for any mere mortal to understand. Effects have one or more Stages, each of which may make changes to Pan or Volume settings. After a specified Delay (in seconds) or TempoDelay (in Beats) (what happens if TempoDelay is used in a Layer that doesn't use Beats?), the next Stage is started. (Again, I'm pretty sure it just goes on and doesn't wait for the first one to finish.)
+
+The Creatures Wiki is too complicated; my understanding of Effects is thus:
+Every time the AleotoricLayer would play a Wave, it tells the Effect. The Effect will copy the Wave a couple times, change the variables, and play the copies in sequence at appropriate intervals (according to the Delay).
