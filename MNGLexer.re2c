@@ -16,7 +16,11 @@
  *
  */
 
+#include <cassert>
+#include <cstdlib> // atof
 #include "MNGLexer.h"
+
+using namespace std;
 
 MNGLexer::MNGLexer (const char *buf)
 {
@@ -92,32 +96,32 @@ start:
 
      string
      {
-       string.clear();
-		   string.append(basep, mng_parse_p - basep);
-		   token = STRING;
+       str.clear();
+		   str.append(basep, mng_parse_p - basep);
+		   tok = STRING;
 		   return true;
      }
      
      operator
      {
-       string.clear();
-       string.append(basep, mng_parse_p - basep);
-       token = OPERATOR;
+       str.clear();
+       str.append(basep, mng_parse_p - basep);
+       tok = OPERATOR;
        return true;
      }
      
      number
      {
        number = atof(basep);
-       token = NUMBER;
+       tok = NUMBER;
        return true;
      }
      
-     comma { token = COMMA; return true; }
-     lparen { token = LPAREN; return true; }
-     rparen { token = RPAREN; return true; }
-     lbrace { token = LBRACE; return true; }
-     rbrace { token = RBRACE; return true; }
+     comma { tok = COMMA; return true; }
+     lparen { tok = LPAREN; return true; }
+     rparen { tok = RPAREN; return true; }
+     lbrace { tok = LBRACE; return true; }
+     rbrace { tok = RBRACE; return true; }
      
 	   any { message = "Unrecognized character"; return false; }
 	*/
