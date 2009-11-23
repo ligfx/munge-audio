@@ -63,7 +63,7 @@ bool MungeFile::Load ()
     vector<int> pSamples, lSamples;
     pSamples.reserve (nSamples);
     lSamples.reserve (nSamples);
-  for (int i = 0; i < nSamples; i++)
+  for (unsigned int i = 0; i < nSamples; i++)
   {
     unsigned int p, l;
     if (!ReadInt (p)) return false;
@@ -76,7 +76,7 @@ bool MungeFile::Load ()
   // TODO: pSamples and lSamples should be list - push on end, pop off front
   
   // Read in the samples
-  for (int i = 0; i < nSamples; i++)
+  for (unsigned int i = 0; i < nSamples; i++)
   {
     // cout << "Reading sample #" << i << endl;
     stream->seekg (pSamples.at(i));
@@ -170,7 +170,7 @@ string MungeFile::ScrambleScript (const string &old)
 	script.reserve(old.size());
 	
 	unsigned char pad = 5;
-	for (int i = 0; i < old.size(); i++) {
+	for (unsigned int i = 0; i < old.size(); i++) {
 		script += (old.at(i) ^ pad);
 		pad += 0xC1;
 	}

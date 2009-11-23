@@ -150,7 +150,7 @@ int main (int argc, char **argv)
   scriptstream << file.GetScript();
   scriptstream.close ();
 	
-	for (int i = 0; i < samples.size(); i++)
+	for (unsigned int i = 0; i < samples.size(); i++)
 	{
 	  pair<string, string*> sample = samples.at(i);
 	  string name = sample.first;
