@@ -16,10 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "AST.h"
+#include <boost/foreach.hpp>
 #include <cassert>
 #include <cstdlib> // abort
-#include "file.h"
+#include "File.h"
 #include <iostream>
+#include "MNGLexer.h"
+#include "MNGParser.h"
+#include "SampleScanner.h"
+
+#define foreach BOOST_FOREACH
 
 using namespace std;
 using namespace CreaturesMunge;
@@ -35,7 +42,7 @@ MungeFile::~MungeFile ()
   delete stream;
 }
 
-vector<pair<string, string*> > MungeFile::GetSamples() { return samples; }
+multimap<string, string*> MungeFile::GetSamples() { return samples; }
 string MungeFile::GetScript() { return script; }
 
 bool MungeFile::Load ()
@@ -53,46 +60,55 @@ bool MungeFile::Load ()
 
   // Read Header
   if (!ReadInt (nSamples)) return false;
-  // cout << "Samples: " << nSamples << endl;
   if (!ReadInt (pScript)) return false;
-  // cout << "Script position: " << pScript << endl;
   if (!ReadInt (lScript)) return false;
-  // cout << "Script length: " << lScript << endl;
 
   // Read Sample metadata
-    vector<int> pSamples, lSamples;
-    pSamples.reserve (nSamples);
-    lSamples.reserve (nSamples);
+  vector<int> pSamples, lSamples;
+  pSamples.reserve (nSamples);
+  lSamples.reserve (nSamples);
   for (unsigned int i = 0; i < nSamples; i++)
   {
     unsigned int p, l;
     if (!ReadInt (p)) return false;
     if (!ReadInt (l)) return false; 
     pSamples.push_back (p);
-    // cout << "Sample #" << i << " Position: " << p << endl;
     lSamples.push_back (l);
-    // cout << "Sample #" << i << " Length: " << l << endl;
   }
   // TODO: pSamples and lSamples should be list - push on end, pop off front
   
   // Read in the samples
+  list<string*> sample_data;
   for (unsigned int i = 0; i < nSamples; i++)
   {
-    // cout << "Reading sample #" << i << endl;
     stream->seekg (pSamples.at(i));
-    string *data = new string();
+    string *data = new string(); // TODO: Delete this eventually
     if (!ReadBytes (lSamples.at(i), *data)) return false;
     AddWavHeader (data);
-    samples.push_back (pair<string, string*>("", data));
+    sample_data.push_back (data);
   }
   
   // Read in the script
-  // cout << "Reading script" << endl;
   stream->seekg (pScript);
   if (!ReadBytes (lScript, script)) return false;
   script = ScrambleScript (script);
 
   // TODO: Parse sample names
+  MNGLexer lexer (script.c_str());
+  MNGParser parser(&lexer, "<stdio>"); // TODO: filename
+  list<FunctionNode> tree;
+  if (parser.Parse (&tree))
+  {
+    SampleScanner scanner;
+    scanner.visit (tree);
+    list<string> names = scanner.getNames();
+    foreach (string name, names)
+    {
+      samples.insert (make_pair (name, sample_data.front()));
+      sample_data.pop_front();
+    }
+  }
+  else;// TODO
 
   stream = NULL;
   return true;

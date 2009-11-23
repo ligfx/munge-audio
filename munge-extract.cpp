@@ -21,7 +21,7 @@
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cstdlib> // 'exit'
-#include "file.h"
+#include "File.h"
 #include <getopt.h>
 #include <iostream>
 #include <libgen.h> // basename
@@ -132,7 +132,7 @@ int main (int argc, char **argv)
 	if (!file.Load())
 	  { cerr << "Error reading file '" << filename << "'; aborting." << endl; exit (1); }
 	
-	vector<pair<string, string*> > samples = file.GetSamples();
+	multimap<string, string*> samples = file.GetSamples();
 	if (!SILENT) cout << "Sample count: " << samples.size() << endl;
 	
 	fs::path directory = fs::path(filename.filename()).replace_extension("");
@@ -145,20 +145,27 @@ int main (int argc, char **argv)
 	if (!fs::create_directory (directory))
 	  { cerr << "Error creating directory; aborting" << endl; exit(1);}
 	  
-  if (!SILENT) cout << "Writing:" << endl << "Script..." << endl;
+  if (!SILENT) cout << "Extracting Script..." << endl;
   fs::ofstream scriptstream(directory / "script", ios::out);
   scriptstream << file.GetScript();
   scriptstream.close ();
-	
-	for (unsigned int i = 0; i < samples.size(); i++)
+		
+	int unnamed = 0;
+	typedef pair<string, string*> Sample;
+	foreach (Sample sample, samples)
 	{
-	  pair<string, string*> sample = samples.at(i);
 	  string name = sample.first;
-	  if (name.length() == 0) name = "Unnamed Sample " + lexical_cast<string>(i);
-		if (!SILENT) cout << name << "... " << endl;
+	  if (name.length() == 0)
+	  {
+	    name = "Unnamed Sample " + lexical_cast<string>(unnamed);
+	    unnamed += 1;
+	  }
+		if (!SILENT) cout << "Extracting " << name << "... " << endl;
 		fs::ofstream samplestream((directory / name).string() + ".wav", ios::out | ios::binary);
 		samplestream << *sample.second;
 	}
+  
+  if (!SILENT) cout << "Done!" << endl;
 
 	return 0;
 }

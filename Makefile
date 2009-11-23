@@ -4,7 +4,7 @@ COMPILER = g++
 CCFLAGS = -g -ansi -Wall -DLINUX
 .SUFFIXES: .o .cpp
 
-munge-extract: munge-extract.o file.o
+munge-extract: munge-extract.o File.o MNGLexer.o MNGParser.o AST.o SampleScanner.o
 	$(COMPILER) $(CCFLAGS) -o $@ $^ -lboost_filesystem-mt -lboost_system-mt
 
 MNGLexer.cpp: MNGLexer.re2c
@@ -31,4 +31,4 @@ tests/cppunitlite.a: $(cppunitlite_objects)
 	$(COMPILER) $(CCFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
 
 clean:
-	rm munge-extract MNGLexer.cpp MNGParser.o MNGLexer.o test.o SampleScanner.o AST.o munge-extract.o file.o $(cppunitlite_objects) tests/cppunitlite.a test
+	rm munge-extract MNGLexer.cpp MNGParser.o MNGLexer.o test.o SampleScanner.o AST.o munge-extract.o File.o $(cppunitlite_objects) tests/cppunitlite.a test
