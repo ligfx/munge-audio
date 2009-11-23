@@ -41,9 +41,7 @@ MungeFile::~MungeFile ()
 {
   typedef pair<string, string*> Sample;
   foreach (Sample s, samples)
-  {
-    delete s.second; 
-  }
+    delete s.second;
   samples.clear();
 
   delete stream;
@@ -117,6 +115,7 @@ bool MungeFile::Load ()
   }
   else;// TODO
 
+  delete stream;
   stream = NULL;
   return true;
 }
