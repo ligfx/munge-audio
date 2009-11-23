@@ -20,7 +20,7 @@ cppunitlite_src = \
 	TestResultStdErr.cpp \
 	Linux/SignalHandler.cpp
 
-test: test.o tests/cppunitlite.a MNGLexer.o MNGParser.o AST.o
+test: test.o tests/cppunitlite.a MNGLexer.o MNGParser.o AST.o SampleScanner.o
 	$(COMPILER) $(CCFLAGS) -o $@ $^
 
 cppunitlite_objects = $(patsubst %.cpp, tests/CppUnitLite2/%.o, $(cppunitlite_src))
@@ -31,4 +31,4 @@ tests/cppunitlite.a: $(cppunitlite_objects)
 	$(COMPILER) $(CCFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
 
 clean:
-	rm munge-extract MNGLexer.cpp MNGParser.o MNGLexer.o test.o AST.o munge-extract.o file.o $(cppunitlite_objects) tests/cppunitlite.a test
+	rm munge-extract MNGLexer.cpp MNGParser.o MNGLexer.o test.o SampleScanner.o AST.o munge-extract.o file.o $(cppunitlite_objects) tests/cppunitlite.a test

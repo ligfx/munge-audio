@@ -2,6 +2,7 @@
 #include <iostream>
 #include "MNGLexer.h"
 #include "MNGParser.h"
+#include "SampleScanner.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
 #include "tests/CppUnitLite2/TestResultStdErr.h"
 
@@ -209,12 +210,20 @@ TEST (PrettyPrintingProducesSameParseTreeAndEqualityCheckingWorks)
   CHECK (equal(firsttree.begin(), firsttree.end(), secondtree.begin()));
 }
 
-TEST (FindSampleNamesThroughAST)
+TEST (SampleScanner)
 {
-  MNGLexer lexer ("Wave (Blah) Add (Wave(Hmm),6.7) Voice { Wave (BobbyJones) }");
+  MNGLexer lexer ("Wave (Blah) Add (Wave(Hmm),6.7) Voice { Wave (BobbyJones) Wave\n(Blah) }");
   MNGParser parser (&lexer, "test.cpp");
   list<FunctionNode> tree;
   CHECK (parser.Parse (&tree));
   
+  SampleScanner ss;
+  ss.visit (tree);
   
+  list<string> names = ss.getNames();
+  CHECK_EQUAL ((unsigned int)3, names.size());
+  list<string>::iterator i = names.begin();
+  CHECK_EQUAL ("Blah", *i++);
+  CHECK_EQUAL ("Hmm", *i++);
+  CHECK_EQUAL ("BobbyJones", *i++);
 }
