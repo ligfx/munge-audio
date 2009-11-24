@@ -18,6 +18,7 @@
  
 #include "AST.h"
 #include "Expression.h"
+#include "LoopLayer.h"
 #include "MNGLexer.h"
 #include "MNGParser.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
@@ -42,6 +43,40 @@ public:
 protected:
   std::list<float> numbers;
 };
+
+TEST (LoopLayerParserFailsOnNonLoopLayer)
+{
+  FunctionNode f;
+  f.name = "IShouldBeWritingMyUCAppEssays";
+  
+  LoopLayer layer;
+  LoopLayerParser parser (f);
+  CHECK (!parser.Parse (&layer));
+  CHECK (parser.getMessage().find ("Expected LoopLayer") != std::string::npos);
+}
+
+TEST (LoopLayerParserFailsOnWrongNumberOfArguments)
+{
+  FunctionNode f;
+  f.name = "LoopLayer";
+  
+  LoopLayer layer;
+  LoopLayerParser parser (f);
+  CHECK (!parser.Parse (&layer));
+  CHECK (parser.getMessage().find ("single argument") != std::string::npos);
+}
+
+TEST (LoopLayerParserFailsOnNonNameParameter)
+{
+  FunctionNode f;
+  f.name = "LoopLayer";
+  f.args.push_back (NumberNode (0));
+  
+  LoopLayer layer;
+  LoopLayerParser parser (f);
+  CHECK (!parser.Parse (&layer));
+  CHECK (parser.getMessage().find ("name as argument") != std::string::npos);
+}
 
 TEST (UnaryParserFailsOnUnrecognizedFunction)
 {
