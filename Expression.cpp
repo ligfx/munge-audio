@@ -28,13 +28,20 @@ IRandomGenerator::~IRandomGenerator () {}
 
 static long double PI = acos ((long double) -1);
 
-float expression_add (float left, float right) { return left + right; }
-float expression_cosinewave (float left, float right) { return cos (left / right * 2 *  PI); } // TODO: Correct?
-float expression_divide (float left, float right) { return left / right; } // TODO: Correct?
-float expression_multiply (float left, float right) { return left * right; }
-float expression_random (float, float) { assert (false); }
-float expression_sinewave (float left, float right) { return sin (left / right * 2 * PI); }
-float expression_subtract (float left, float right) { return left - right; } // TODO: Correct?
+float expression_add (float left, float right, IRandomGenerator*)
+  { return left + right; }
+float expression_cosinewave (float left, float right, IRandomGenerator*)
+  { return cos (left / right * 2 *  PI); } // TODO: Correct?
+float expression_divide (float left, float right, IRandomGenerator*)
+  { return left / right; } // TODO: Correct?
+float expression_multiply (float left, float right, IRandomGenerator*)
+  { return left * right; }
+float expression_random (float left, float right, IRandomGenerator *random)
+  { return random->next(left, right); }
+float expression_sinewave (float left, float right, IRandomGenerator*)
+  { return sin (left / right * 2 * PI); }
+float expression_subtract (float left, float right, IRandomGenerator*)
+  { return left - right; } // TODO: Correct?
 
 Expression::Expression () {}
 
@@ -62,7 +69,7 @@ float Expression::getValue
     float left = function->left->getValue (variables, random);
     float right = function->right->getValue (variables, random);
    
-    return function->function (left, right);
+    return function->function (left, right, random);
   }
   else assert (false);
 }

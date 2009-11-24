@@ -34,20 +34,20 @@ public:
   virtual float next (float left, float right) =0;
 };
 
-float expression_add (float, float);
-float expression_cosinewave (float, float);
-float expression_divide (float, float);
-float expression_multiply (float, float);
-float expression_random (float, float);
-float expression_sinewave (float, float);
-float expression_subtract (float, float);
+float expression_add (float, float, IRandomGenerator*);
+float expression_cosinewave (float, float, IRandomGenerator*);
+float expression_divide (float, float, IRandomGenerator*);
+float expression_multiply (float, float, IRandomGenerator*);
+float expression_random (float, float, IRandomGenerator*);
+float expression_sinewave (float, float, IRandomGenerator*);
+float expression_subtract (float, float, IRandomGenerator*);
 
 class FunctionExpression
 {
   friend class Expression;
   friend class ExpressionParser;
   
-  float(*function)(float, float);
+  float(*function)(float, float, IRandomGenerator*);
   boost::shared_ptr<Expression> left, right;
 };
 class VariableExpression

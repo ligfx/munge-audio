@@ -154,6 +154,27 @@ TEST (ExpressionParserMultiply)
     0.00001);
 }
 
+TEST (ExpressionParserRandom)
+{
+  MNGLexer lexer ("Random (0, 10)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    5.6,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+
 TEST (ExpressionParserSineWave)
 {
   MNGLexer lexer ("SineWave (0, 52)");
