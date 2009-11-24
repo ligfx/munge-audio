@@ -53,6 +53,13 @@ float Expression::getValue
     }
     return (*it).second;
   }
+  else if (FunctionExpression *function = get<FunctionExpression> (&expression))
+  {
+    float left = function->left->getValue (variables, random);
+    float right = function->right->getValue (variables, random);
+   
+    return function->function (left, right);
+  }
   else assert (false);
 }
 

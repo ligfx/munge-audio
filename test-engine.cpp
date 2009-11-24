@@ -74,6 +74,26 @@ TEST (ExpressionParserVariable)
     0.00001);
 }
 
+TEST (ExpressionParserFunction)
+{
+  MNGLexer lexer ("Add (1, 2)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    3,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
 #if 0
 #include "Track.h"
 
