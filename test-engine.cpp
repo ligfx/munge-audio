@@ -48,6 +48,17 @@ TEST (UnaryParserFailsOnBlock)
   CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
 }
 
+TEST (UnaryParserFailsOnWrongNumberOfArguments)
+{
+  FunctionNode f;
+  f.name = "Interval";
+  
+  Expression expr;
+  UnaryParser parser (f);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("expects a single argument") != std::string::npos);
+}
+
 class TestRandomGenerator
   : public IRandomGenerator
 {
