@@ -94,6 +94,26 @@ TEST (ExpressionParserFunction)
     0.00001);
 }
 
+TEST (ExpressionParserReallyComplicatedFunction)
+{
+  MNGLexer lexer ("Add (Subtract (10, 5), Multiply (2, Divide (7, 1)))");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    19,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
 #if 0
 #include "Track.h"
 
