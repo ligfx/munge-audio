@@ -67,6 +67,18 @@ TEST (ExpressionParserFailsOnBlock)
   CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
 }
 
+TEST (ExpressionParserFailsOnWrongNumberOfArguments)
+{
+  FunctionNode f;
+  f.name = "Add";
+  ArgNode a = f;
+  
+  Expression expr;
+  ExpressionParser parser (a);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("expects two arguments") != std::string::npos);
+}
+
 TEST (ExpressionParserConstant)
 {
   ArgNode a = NumberNode(0.6);
