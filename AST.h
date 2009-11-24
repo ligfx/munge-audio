@@ -34,12 +34,14 @@ typedef boost::variant<FunctionNode, NameNode, NumberNode> ArgNode;
 // The actual nodes an AST is made of
 struct Node
 {
+  Node () : lineno(0) {}
   unsigned int lineno;
   std::string filename;
 };
 
 struct FunctionNode : public Node
 {
+  FunctionNode () : Node() {}
   std::string name;
   std::list<boost::variant<FunctionNode, NameNode, NumberNode> > args;
   std::list<FunctionNode> block;
@@ -47,13 +49,13 @@ struct FunctionNode : public Node
 
 struct NameNode : public Node
 {
-  NameNode (std::string n) : name (n) {}
+  NameNode (std::string n) : Node(), name (n) {}
   std::string name;
 };
 
 struct NumberNode : public Node
 {
-  NumberNode (float f) : number (f) {}
+  NumberNode (float f) : Node(), number (f) {}
   float number;
 };
 
