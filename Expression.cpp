@@ -20,6 +20,7 @@
 #include "Expression.h"
 
 using namespace boost;
+using namespace std;
 
 IRandomGenerator::~IRandomGenerator () {}
 
@@ -34,12 +35,23 @@ float expression_subtract (float left, float right) { return left - right; } // 
 Expression::Expression () {}
 
 float Expression::getValue
-  (std::map<std::string, float> variables,
+  (map<string, float> variables,
    IRandomGenerator *random)
 {
   if (ConstantExpression *constant = get<ConstantExpression> (&expression))
   {
     return constant->number;
+  }
+  else if (VariableExpression *variable = get<VariableExpression> (&expression))
+  {
+    map<string, float>::const_iterator it = variables.find (variable->name);
+    if (it == variables.end())
+    {
+      // TODO: Some sort of error mechanism...
+      //       Should we check this statically
+      assert (false);
+    }
+    return (*it).second;
   }
   else assert (false);
 }

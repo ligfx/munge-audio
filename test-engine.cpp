@@ -22,6 +22,8 @@
 #include "MNGParser.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
 
+using namespace std;
+
 class TestRandomGenerator
   : public IRandomGenerator
 {
@@ -51,7 +53,24 @@ TEST (ExpressionParserConstant)
   TestRandomGenerator random;
   CHECK_CLOSE (
     0.6,
-    expr.getValue (std::map<std::string, float>(), &random),
+    expr.getValue (map<string, float>(), &random),
+    0.00001);
+}
+
+TEST (ExpressionParserVariable)
+{
+  ArgNode a = NameNode ("MementoMori");
+  
+  Expression expr;
+  ExpressionParser parser(a);
+  CHECK (parser.Parse (&expr));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  variables.insert (make_pair ("MementoMori", -1.5));
+  CHECK_CLOSE (
+    -1.5,
+    expr.getValue (variables, &random),
     0.00001);
 }
 
