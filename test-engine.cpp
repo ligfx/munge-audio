@@ -21,8 +21,20 @@
 #include "MNGLexer.h"
 #include "MNGParser.h"
 #include "tests/CppUnitLite2/CppUnitLite2.h"
+#include "Unary.h"
 
 using namespace std;
+
+TEST (UnaryParserFailsOnUnrecognizedFunction)
+{
+  FunctionNode f;
+  f.name = "ILikeScarves";
+  
+  Expression expr;
+  UnaryParser parser (f);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("got ILikeScarves") != std::string::npos);
+}
 
 class TestRandomGenerator
   : public IRandomGenerator
