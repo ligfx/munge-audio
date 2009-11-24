@@ -26,8 +26,8 @@ bool UnaryParser::CheckAbsenceOfBlock (const FunctionNode &node)
 {
   if (node.block.empty()) return true;
   
-  boost::format f ("%s does not take a block");
-  f % node.name;
+  boost::format f ("%s:%i: %s does not take a block");
+  f % node.filename % node.lineno % node.name;
   message = f.str();
   return false;
 }
@@ -36,8 +36,8 @@ bool UnaryParser::CheckSingleParameter (const FunctionNode &node)
 {
   if (node.args.size() == 1) return true;
   
-  boost::format f ("%s expects a single argument");
-  f % node.name;
+  boost::format f ("%s:%i: %s expects a single argument");
+  f % node.filename % node.lineno % node.name;
   message = f.str();
   return false;
 }
@@ -70,9 +70,9 @@ bool UnaryParser::Parse (Expression *expr)
   else
   {
     boost::format f (
-      "Expected BeatLength, BeatSynch, Delay, FadeIn, FadeOut, Interval, Pan, "
-      "TempoDelay, UpdateRate, or Volume; got %s");
-    f % node.name;
+      "%s:%i: Expected BeatLength, BeatSynch, Delay, FadeIn, FadeOut, Interval, "
+      "Pan, TempoDelay, UpdateRate, or Volume; got %s");
+    f % node.filename % node.lineno % node.name;
     message = f.str();
     return false;
   }

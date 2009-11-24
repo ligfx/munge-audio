@@ -80,8 +80,8 @@ bool ExpressionParser::CheckAbsenceOfBlock (const FunctionNode &node)
 {
   if (node.block.empty()) return true;
   
-  format f ("%s does not take a block");
-  f % node.name;
+  format f ("%s:%i: %s does not take a block");
+  f % node.filename % node.lineno % node.name;
   message = f.str();
   return false;
 }
@@ -90,8 +90,8 @@ bool ExpressionParser::CheckTwoParameters (const FunctionNode &node)
 {
   if (node.args.size() == 2) return true;
   
-  format f ("%s expects two arguments");
-  f % node.name;
+  format f ("%s:%i: %s expects two arguments");
+  f % node.filename % node.lineno % node.name;
   message = f.str();
   return false;
 }
@@ -147,9 +147,9 @@ bool ExpressionParser::Parse (Expression *expr)
     else
     {
     boost::format s (
-      "Expected constant, variable name, Add, CosineWave, Divide, Multiply, "
+      "%s:%i: Expected constant, variable name, Add, CosineWave, Divide, Multiply, "
       "Random, SineWave, or Subtract; got %s");
-    s % f->name;
+    s % f->filename % f->lineno % f->name;
     message = s.str();
     return false;
     }
