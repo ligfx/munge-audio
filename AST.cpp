@@ -85,9 +85,9 @@ void ASTVisitor::visit (const FunctionNode &f)
     visit (f);
 }
 
-void ASTVisitor::visit (const NameNode &n) {}
+void ASTVisitor::visit (const NameNode&) {}
 
-void ASTVisitor::visit (const NumberNode &n) {}
+void ASTVisitor::visit (const NumberNode&) {}
 
 bool FunctionArgEqualityTester::operator()
   (const FunctionNode &a, const FunctionNode &b)
