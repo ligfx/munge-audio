@@ -74,7 +74,7 @@ TEST (ExpressionParserVariable)
     0.00001);
 }
 
-TEST (ExpressionParserFunction)
+TEST (ExpressionParserAdd)
 {
   MNGLexer lexer ("Add (1, 2)");
   MNGParser mngparser(&lexer, "test.cpp");
@@ -90,6 +90,106 @@ TEST (ExpressionParserFunction)
   map<string, float> variables;
   CHECK_CLOSE (
     3,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+TEST (ExpressionParserCosineWave)
+{
+  MNGLexer lexer ("CosineWave (1, 1)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    1,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+TEST (ExpressionParserDivide)
+{
+  MNGLexer lexer ("Divide (2, 1)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    2,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+TEST (ExpressionParserMultiply)
+{
+  MNGLexer lexer ("Multiply (2, 5)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    10,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+TEST (ExpressionParserSineWave)
+{
+  MNGLexer lexer ("SineWave (0, 52)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    0,
+    expression.getValue (variables, &random),
+    0.00001);
+}
+
+TEST (ExpressionParserSubtract)
+{
+  MNGLexer lexer ("Subtract (5, 3)");
+  MNGParser mngparser(&lexer, "test.cpp");
+  list<FunctionNode> tree;
+  CHECK (mngparser.Parse (&tree));
+  
+  ArgNode node = tree.front();
+  ExpressionParser parser (node);
+  Expression expression;
+  CHECK (parser.Parse (&expression));
+  
+  TestRandomGenerator random;
+  map<string, float> variables;
+  CHECK_CLOSE (
+    2,
     expression.getValue (variables, &random),
     0.00001);
 }
