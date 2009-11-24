@@ -54,6 +54,19 @@ TEST (ExpressionParserFailsOnNonExpression)
   CHECK (parser.getMessage().find ("got Blarg") != std::string::npos);
 }
 
+TEST (ExpressionParserFailsOnBlock)
+{
+  FunctionNode f;
+  f.name = "Add";
+  f.block.push_back (FunctionNode ());
+  ArgNode a = f;
+  
+  Expression expr;
+  ExpressionParser parser (a);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
+}
+
 TEST (ExpressionParserConstant)
 {
   ArgNode a = NumberNode(0.6);
