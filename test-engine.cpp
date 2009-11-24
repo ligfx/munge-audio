@@ -36,6 +36,18 @@ TEST (UnaryParserFailsOnUnrecognizedFunction)
   CHECK (parser.getMessage().find ("got ILikeScarves") != std::string::npos);
 }
 
+TEST (UnaryParserFailsOnBlock)
+{
+  FunctionNode f;
+  f.name = "Interval";
+  f.block.push_back (FunctionNode());
+  
+  Expression expr;
+  UnaryParser parser (f);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
+}
+
 class TestRandomGenerator
   : public IRandomGenerator
 {
