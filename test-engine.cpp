@@ -42,6 +42,18 @@ protected:
   std::list<float> numbers;
 };
 
+TEST (ExpressionParserFailsOnNonExpression)
+{
+  FunctionNode f;
+  f.name = "Blarg!";
+  ArgNode a = f;
+  
+  Expression expr;
+  ExpressionParser parser (a);
+  CHECK (!parser.Parse (&expr));
+  CHECK (parser.getMessage().find ("got Blarg") != std::string::npos);
+}
+
 TEST (ExpressionParserConstant)
 {
   ArgNode a = NumberNode(0.6);
