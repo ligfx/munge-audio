@@ -77,6 +77,8 @@ bool MNGParser::ParseFunction(FunctionNode *node)
 {
   // Parse name
   string name;
+  node->lineno = lexer->getLineNumber();
+  node->filename = filename;
   if (!ParseString(&name)) return expected ("function");
   node->name = name;
   
@@ -128,7 +130,11 @@ bool MNGParser::ParseUnnamedFunction(FunctionNode *node)
     if (!ParseOperator(&op)) return expected("argument list, block, or operator");
     if (!ParseArg(&n)) return false; // Expectation handled inside
     
-    node->args.push_back (NameNode (node->name));
+    NameNode var (node->name);
+    var.filename = node->filename;
+    var.lineno = node->lineno;
+    
+    node->args.push_back (var);
     node->args.push_back (n);
     node->name = op;
   }
@@ -143,8 +149,13 @@ bool MNGParser::ParseArg(variant<FunctionNode, NameNode, NumberNode> *node)
   if (lexer->token() == Lx::NUMBER)
   {
     float f;
+    NumberNode n(0);
+    n.filename = filename;
+    n.lineno = lexer->getLineNumber();
     if (!ParseNumber(&f)) return false; // Expectation unneeded
-    *node = NumberNode (f);
+    n.number = f;
+    *node = n;
+    
     return true;
   }
   
@@ -153,8 +164,10 @@ bool MNGParser::ParseArg(variant<FunctionNode, NameNode, NumberNode> *node)
   if (lexer->token() == Lx::STRING)
   {
     string name;
+    unsigned int lineno = lexer->getLineNumber();
     if (!ParseString(&name)) return false; // Expectation unneeded
-    FunctionNode f;
+    FunctionNode func;
+    NameNode n ("");
     switch (lexer->token())
     {
       // If it looks like a function after the string, then it's a function!
@@ -162,16 +175,22 @@ bool MNGParser::ParseArg(variant<FunctionNode, NameNode, NumberNode> *node)
       case Lx::LPAREN:
       case Lx::LBRACE:
       case Lx::OPERATOR:
-        f.name = name;
-        if (!ParseUnnamedFunction(&f)) return false; // Expectation handled inside
-        *node = f;
-        return true;
+        func.name = name;
+        func.filename = filename;
+        func.lineno = lineno;
+        if (!ParseUnnamedFunction(&func)) return false; // Expectation handled inside
+        *node = func;
+        break;
         
       // Otherwise, it's just a name, and we're good
       default:
-        *node = NameNode (name);
-        return true;
+        n.name = name;
+        n.filename = filename;
+        n.lineno = lineno;
+        *node = n;
+        break;
     }
+    return true;
   }
   
   // Not a string (/function) or number? Woops!
@@ -220,7 +239,7 @@ bool MNGParser::expected(std::string expects)
 {
   if (!message.empty()) return false;
   
-  boost::format f ("%s:%i:Expected %s, instead got %s");
+  boost::format f ("%s:%i: Expected %s, instead got %s");
   f % filename % lexer->getLineNumber() % expects;
 
   Lx::Token token = lexer->token();
@@ -255,7 +274,7 @@ bool MNGParser::expected(std::string expects)
 
 bool MNGParser::LexFail()
 {
-  boost::format f("%s:%i:%s");
+  boost::format f("%s:%i: %s");
   f % filename % lexer->getLineNumber();
   
   std::string lexmsg = lexer->getMessage();
