@@ -25,6 +25,24 @@
 
 using namespace std;
 
+class TestRandomGenerator
+  : public IRandomGenerator
+{
+public:
+  TestRandomGenerator ()
+  {
+    numbers.push_back (5.6);
+  }
+  virtual float next (float, float)
+  {
+    float n = numbers.front();
+    numbers.pop_front();
+    return n;
+  }
+protected:
+  std::list<float> numbers;
+};
+
 TEST (UnaryParserFailsOnUnrecognizedFunction)
 {
   FunctionNode f;
@@ -51,7 +69,7 @@ TEST (UnaryParserFailsOnBlock)
 TEST (UnaryParserFailsOnWrongNumberOfArguments)
 {
   FunctionNode f;
-  f.name = "Interval";
+  f.name = "BeatLength";
   
   Expression expr;
   UnaryParser parser (f);
@@ -59,23 +77,21 @@ TEST (UnaryParserFailsOnWrongNumberOfArguments)
   CHECK (parser.getMessage().find ("expects a single argument") != std::string::npos);
 }
 
-class TestRandomGenerator
-  : public IRandomGenerator
+TEST (UnaryParserChainsToExpressionParserProperly)
 {
-public:
-  TestRandomGenerator ()
-  {
-    numbers.push_back (5.6);
-  }
-  virtual float next (float, float)
-  {
-    float n = numbers.front();
-    numbers.pop_front();
-    return n;
-  }
-protected:
-  std::list<float> numbers;
-};
+  FunctionNode f;
+  f.name = "Volume";
+  f.args.push_back (NameNode ("Goomba"));
+  
+  Expression expr;
+  UnaryParser parser (f);
+  CHECK (parser.Parse (&expr));
+  
+  map<string, float> variables;
+  variables["Goomba"] = 1.4;
+  TestRandomGenerator random;
+  CHECK_CLOSE (1.4, expr.getValue (variables, &random), 0.00001);
+}
 
 TEST (ExpressionParserFailsOnNonExpression)
 {
