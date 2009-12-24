@@ -15,13 +15,14 @@
  *  Lesser General Public License for more details.
  *
  */
+
+#include <gtest/gtest.h>
  
 #include "AST.h"
 #include "Expression.h"
 #include "LoopLayer.h"
 #include "MNGLexer.h"
 #include "MNGParser.h"
-#include "tests/CppUnitLite2/CppUnitLite2.h"
 #include "Unary.h"
 
 using namespace std;
@@ -44,29 +45,40 @@ protected:
   std::list<float> numbers;
 };
 
-TEST (LoopLayerParserFailsOnNonLoopLayer)
+TEST (LoopLayerParserTest, FailsOnNonLoopLayer)
 {
+  /*
+  // TODO: Should be maybe...
+
+  f.name = "Blah";
+
+  EXPECT_FALSE (parser.Parse (f, &layer));
+  EXPECT_NE (parser.getMessage().find ("Expected LoopLayer"), std::string::npos);
+
+  // With a fixture?
+  */
+  
   FunctionNode f;
   f.name = "IShouldBeWritingMyUCAppEssays";
   
   LoopLayer layer;
   LoopLayerParser parser (f);
-  CHECK (!parser.Parse (&layer));
-  CHECK (parser.getMessage().find ("Expected LoopLayer") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&layer));
+  EXPECT_NE (parser.getMessage().find ("Expected LoopLayer"), std::string::npos);
 }
 
-TEST (LoopLayerParserFailsOnWrongNumberOfArguments)
+TEST (LoopLayerParserTest, FailsOnWrongNumberOfArguments)
 {
   FunctionNode f;
   f.name = "LoopLayer";
   
   LoopLayer layer;
   LoopLayerParser parser (f);
-  CHECK (!parser.Parse (&layer));
-  CHECK (parser.getMessage().find ("single argument") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&layer));
+  EXPECT_NE (parser.getMessage().find ("single argument"), std::string::npos);
 }
 
-TEST (LoopLayerParserFailsOnNonNameParameter)
+TEST (LoopLayerParserTest, FailsOnNonNameParameter)
 {
   FunctionNode f;
   f.name = "LoopLayer";
@@ -74,22 +86,22 @@ TEST (LoopLayerParserFailsOnNonNameParameter)
   
   LoopLayer layer;
   LoopLayerParser parser (f);
-  CHECK (!parser.Parse (&layer));
-  CHECK (parser.getMessage().find ("name as argument") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&layer));
+  EXPECT_NE (parser.getMessage().find ("name as argument"), std::string::npos);
 }
 
-TEST (UnaryParserFailsOnUnrecognizedFunction)
+TEST (UnaryParserTest, FailsOnUnrecognizedFunction)
 {
   FunctionNode f;
   f.name = "ILikeScarves";
   
   Expression expr;
   UnaryParser parser (f);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("got ILikeScarves") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("got ILikeScarves"), std::string::npos);
 }
 
-TEST (UnaryParserFailsOnBlock)
+TEST (UnaryParserTest, FailsOnBlock)
 {
   FunctionNode f;
   f.name = "Interval";
@@ -97,22 +109,22 @@ TEST (UnaryParserFailsOnBlock)
   
   Expression expr;
   UnaryParser parser (f);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("does not take a block"), std::string::npos);
 }
 
-TEST (UnaryParserFailsOnWrongNumberOfArguments)
+TEST (UnaryParserTest, FailsOnWrongNumberOfArguments)
 {
   FunctionNode f;
   f.name = "BeatLength";
   
   Expression expr;
   UnaryParser parser (f);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("expects a single argument") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("expects a single argument"), std::string::npos);
 }
 
-TEST (UnaryParserChainsToExpressionParserProperly)
+TEST (UnaryParserTest, ChainsToExpressionParserProperly)
 {
   FunctionNode f;
   f.name = "Volume";
@@ -120,15 +132,15 @@ TEST (UnaryParserChainsToExpressionParserProperly)
   
   Expression expr;
   UnaryParser parser (f);
-  CHECK (parser.Parse (&expr));
+  ASSERT_TRUE (parser.Parse (&expr));
   
   map<string, float> variables;
   variables["Goomba"] = 1.4;
   TestRandomGenerator random;
-  CHECK_CLOSE (1.4, expr.getValue (variables, &random), 0.00001);
+  EXPECT_FLOAT_EQ (1.4, expr.getValue (variables, &random));
 }
 
-TEST (ExpressionParserFailsOnNonExpression)
+TEST (ExpressionParserTest, FailsOnNonExpression)
 {
   FunctionNode f;
   f.name = "Blarg!";
@@ -136,11 +148,11 @@ TEST (ExpressionParserFailsOnNonExpression)
   
   Expression expr;
   ExpressionParser parser (a);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("got Blarg") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("got Blarg"), std::string::npos);
 }
 
-TEST (ExpressionParserFailsOnBlock)
+TEST (ExpressionParserTest, FailsOnBlock)
 {
   FunctionNode f;
   f.name = "Add";
@@ -149,11 +161,11 @@ TEST (ExpressionParserFailsOnBlock)
   
   Expression expr;
   ExpressionParser parser (a);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("does not take a block") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("does not take a block"), std::string::npos);
 }
 
-TEST (ExpressionParserFailsOnWrongNumberOfArguments)
+TEST (ExpressionParserTest, FailsOnWrongNumberOfArguments)
 {
   FunctionNode f;
   f.name = "Add";
@@ -161,201 +173,171 @@ TEST (ExpressionParserFailsOnWrongNumberOfArguments)
   
   Expression expr;
   ExpressionParser parser (a);
-  CHECK (!parser.Parse (&expr));
-  CHECK (parser.getMessage().find ("expects two arguments") != std::string::npos);
+  EXPECT_FALSE (parser.Parse (&expr));
+  EXPECT_NE (parser.getMessage().find ("expects two arguments"), std::string::npos);
 }
 
-TEST (ExpressionParserConstant)
+TEST (ExpressionParserTest, Constant)
 {
   ArgNode a = NumberNode(0.6);
 
   Expression expr;
   ExpressionParser parser(a);
-  CHECK (parser.Parse (&expr));
+  ASSERT_TRUE (parser.Parse (&expr));
   
   TestRandomGenerator random;
-  CHECK_CLOSE (
-    0.6,
-    expr.getValue (map<string, float>(), &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (0.6, expr.getValue (map<string, float>(), &random));
 }
 
-TEST (ExpressionParserVariable)
+TEST (ExpressionParserTest, Variable)
 {
   ArgNode a = NameNode ("MementoMori");
   
   Expression expr;
   ExpressionParser parser(a);
-  CHECK (parser.Parse (&expr));
+  ASSERT_TRUE (parser.Parse (&expr));
   
   TestRandomGenerator random;
   map<string, float> variables;
   variables.insert (make_pair ("MementoMori", -1.5));
-  CHECK_CLOSE (
-    -1.5,
-    expr.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (-1.5, expr.getValue (variables, &random));
 }
 
-TEST (ExpressionParserAdd)
+TEST (ExpressionParserTest, Add)
 {
   MNGLexer lexer ("Add (1, 2)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    3,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (3, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserCosineWave)
+TEST (ExpressionParserTest, CosineWave)
 {
   MNGLexer lexer ("CosineWave (1, 1)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    1,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (1, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserDivide)
+TEST (ExpressionParserTest, Divide)
 {
   MNGLexer lexer ("Divide (2, 1)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    2,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (2, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserMultiply)
+TEST (ExpressionParserTest, Multiply)
 {
   MNGLexer lexer ("Multiply (2, 5)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    10,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (10, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserRandom)
+TEST (ExpressionParserTest, Random)
 {
   MNGLexer lexer ("Random (0, 10)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    5.6,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (5.6, expression.getValue (variables, &random));
 }
 
 
-TEST (ExpressionParserSineWave)
+TEST (ExpressionParserTest, SineWave)
 {
   MNGLexer lexer ("SineWave (0, 52)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    0,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (0, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserSubtract)
+TEST (ExpressionParserTest, Subtract)
 {
   MNGLexer lexer ("Subtract (5, 3)");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    2,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (2, expression.getValue (variables, &random));
 }
 
-TEST (ExpressionParserReallyComplicatedFunction)
+TEST (ExpressionParserTest, ReallyComplicatedFunction)
 {
   MNGLexer lexer ("Add (Subtract (10, 5), Multiply (2, Divide (7, 1)))");
   MNGParser mngparser(&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (mngparser.Parse (&tree));
+  ASSERT_TRUE (mngparser.Parse (&tree));
   
   ArgNode node = tree.front();
   ExpressionParser parser (node);
   Expression expression;
-  CHECK (parser.Parse (&expression));
+  ASSERT_TRUE (parser.Parse (&expression));
   
   TestRandomGenerator random;
   map<string, float> variables;
-  CHECK_CLOSE (
-    19,
-    expression.getValue (variables, &random),
-    0.00001);
+  EXPECT_FLOAT_EQ (19, expression.getValue (variables, &random));
 }
 
 #if 0

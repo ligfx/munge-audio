@@ -16,204 +16,195 @@
  *
  */
 
+#include <gtest/gtest.h>
+
 #include "AST.h"
 #include <iostream>
 #include "MNGLexer.h"
 #include "MNGParser.h"
 #include "SampleScanner.h"
-#include "tests/CppUnitLite2/CppUnitLite2.h"
-#include "tests/CppUnitLite2/TestResultStdErr.h"
 
 using namespace std;
 using namespace boost;
 
-int main()
-{     
-    TestResultStdErr result;
-    TestRegistry::Instance().Run(result);
-    return (result.FailureCount());
-}
-
-TEST (LexerGivesCorrectTokens)
+TEST (LexerTest, GivesCorrectTokens)
 {
   MNGLexer lexer ("Track (Hi) { Volume (-6.7) Hi = Add (6, -7.80} //fg%4");
 
   lexer.next();
-  CHECK_EQUAL (MNGLexer::STRING, lexer.token());
-  CHECK_EQUAL ("Track", lexer.getString());
+  EXPECT_EQ (MNGLexer::STRING, lexer.token());
+  EXPECT_EQ ("Track", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::LPAREN, lexer.token());
+  EXPECT_EQ (MNGLexer::LPAREN, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::STRING, lexer.token());
-  CHECK_EQUAL ("Hi", lexer.getString());
+  EXPECT_EQ (MNGLexer::STRING, lexer.token());
+  EXPECT_EQ ("Hi", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::RPAREN, lexer.token());
+  EXPECT_EQ (MNGLexer::RPAREN, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::LBRACE, lexer.token());
+  EXPECT_EQ (MNGLexer::LBRACE, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::STRING, lexer.token());
-  CHECK_EQUAL ("Volume", lexer.getString());
+  EXPECT_EQ (MNGLexer::STRING, lexer.token());
+  EXPECT_EQ ("Volume", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::LPAREN, lexer.token());
+  EXPECT_EQ (MNGLexer::LPAREN, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::NUMBER, lexer.token());
-  CHECK_CLOSE (-6.7, lexer.getNumber(), 0.00001);
+  EXPECT_EQ (MNGLexer::NUMBER, lexer.token());
+  EXPECT_FLOAT_EQ (-6.7, lexer.getNumber());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::RPAREN, lexer.token());
+  EXPECT_EQ (MNGLexer::RPAREN, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::STRING, lexer.token());
-  CHECK_EQUAL ("Hi", lexer.getString());
+  EXPECT_EQ (MNGLexer::STRING, lexer.token());
+  EXPECT_EQ ("Hi", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::OPERATOR, lexer.token());
-  CHECK_EQUAL ("=", lexer.getString());
+  EXPECT_EQ (MNGLexer::OPERATOR, lexer.token());
+  EXPECT_EQ ("=", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::STRING, lexer.token());
-  CHECK_EQUAL ("Add", lexer.getString());
+  EXPECT_EQ (MNGLexer::STRING, lexer.token());
+  EXPECT_EQ ("Add", lexer.getString());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::LPAREN, lexer.token());
+  EXPECT_EQ (MNGLexer::LPAREN, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::NUMBER, lexer.token());
-  CHECK_CLOSE (6, lexer.getNumber(), 0.00001);
+  EXPECT_EQ (MNGLexer::NUMBER, lexer.token());
+  EXPECT_FLOAT_EQ (6, lexer.getNumber());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::COMMA, lexer.token());
+  EXPECT_EQ (MNGLexer::COMMA, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::NUMBER, lexer.token());
-  CHECK_CLOSE (-7.8, lexer.getNumber(), 0.00001);
+  EXPECT_EQ (MNGLexer::NUMBER, lexer.token());
+  EXPECT_FLOAT_EQ (-7.8, lexer.getNumber());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::RBRACE, lexer.token());
+  EXPECT_EQ (MNGLexer::RBRACE, lexer.token());
   
   lexer.next();
-  CHECK_EQUAL (MNGLexer::EOI, lexer.token());
+  EXPECT_EQ (MNGLexer::EOI, lexer.token());
 }
 
-TEST (BooleanParser)
+TEST (ParserTest, Success)
 {
   MNGLexer lexer ("Track (Hi) { Add (P) Glarb { Jack = Random(-1,4) Add (5) } Hit(Nobody) }");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (parser.Parse(&tree));
+  ASSERT_TRUE (parser.Parse(&tree));
 }
 
-// TODO: CHECK_NOT_EQUAL
-
-TEST (ParserExpectedFunctionTopLevel)
+TEST (ParserTest, ExpectedFunctionTopLevel)
 {
   MNGLexer lexer ("(");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE (parser.getMessage().find ("Expected function"), std::string::npos);
 }
 
-TEST (ParserExpectedFunctionBlockLevel)
+TEST (ParserTest, ExpectedFunctionBlockLevel)
 {
   MNGLexer lexer ("Update { 6 }");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Expected function") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE (parser.getMessage().find ("Expected function"), std::string::npos);
 }
 
-TEST (ParserExpectedArgListBlockOrOperator)
+TEST (ParserTest, ExpectedArgListBlockOrOperator)
 {
   MNGLexer lexer ("Add )");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Expected argument list, block, or operator") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE (parser.getMessage().find ("Expected argument list, block, or operator"), std::string::npos);
 }
 
-TEST (ParserExpectedCommaBetweenArguments)
+TEST (ParserTest, ExpectedCommaBetweenArguments)
 {
   MNGLexer lexer ("Add ( 6 7 )");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Expected comma between arguments") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE (parser.getMessage().find ("Expected comma between arguments"), std::string::npos);
 }
 
-TEST (ParserExpectedNumberVariableNameOrFunction)
+TEST (ParserTest, ExpectedNumberVariableNameOrFunction)
 {
   MNGLexer lexer ("Add = ,");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Expected number, variable name, or function") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE(parser.getMessage().find ("Expected number, variable name, or function"), std::string::npos);
 }
 
-TEST (ParserLexFailUnrecognizedCharacter)
+TEST (ParserTest, LexerFailsOnUnrecognizedCharacter)
 {
   MNGLexer lexer ("Add &");
   MNGParser parser (&lexer, "test.cpp");
   std::list<FunctionNode> tree;
-  CHECK (!parser.Parse(&tree));
-  CHECK (parser.getMessage().find ("Unrecognized character") != std::string::npos);
+  ASSERT_FALSE (parser.Parse(&tree));
+  ASSERT_NE  (parser.getMessage().find ("Unrecognized character"), std::string::npos);
 }
 
-TEST (ParserTreeMakesSense)
+TEST (ParserTest, TreeMakesSense)
 {
   MNGLexer lexer ("Add (6, 7) { Main (Hi) P = -8.7 }");
   MNGParser parser (&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (parser.Parse (&tree));
+  ASSERT_TRUE (parser.Parse (&tree));
   
-  CHECK_EQUAL ((unsigned int)1, tree.size());
+  EXPECT_EQ ((unsigned int)1, tree.size());
   {
     FunctionNode first = *tree.begin();
-    CHECK_EQUAL ("Add", first.name);
-    CHECK_EQUAL ((unsigned int)2, first.args.size());
+    EXPECT_EQ ("Add", first.name);
+    EXPECT_EQ ((unsigned int)2, first.args.size());
     {
       NumberNode a = get<NumberNode>(*first.args.begin());
-      CHECK_EQUAL (6, a.number);
+      EXPECT_EQ (6, a.number);
         
       NumberNode b = get<NumberNode>(*(++first.args.begin()));
-      CHECK_EQUAL (7, b.number);
+      EXPECT_EQ (7, b.number);
     }
-    CHECK_EQUAL ((unsigned int)2, first.block.size());
+    EXPECT_EQ ((unsigned int)2, first.block.size());
     {
       FunctionNode c = *first.block.begin();
-      CHECK_EQUAL ("Main", c.name);
-      CHECK_EQUAL ((unsigned int)1, c.args.size());
+      EXPECT_EQ ("Main", c.name);
+      EXPECT_EQ ((unsigned int)1, c.args.size());
       {
-        CHECK_EQUAL ("Hi", get<NameNode>(*c.args.begin()).name);
+        EXPECT_EQ ("Hi", get<NameNode>(*c.args.begin()).name);
       }
       
       FunctionNode d = *(++first.block.begin());
-      CHECK_EQUAL ("=", d.name);
-      CHECK_EQUAL ((unsigned int)2, d.args.size());
+      EXPECT_EQ ("=", d.name);
+      EXPECT_EQ ((unsigned int)2, d.args.size());
       {
         NameNode e = get<NameNode>(*d.args.begin());
-        CHECK_EQUAL ("P", e.name);
+        EXPECT_EQ ("P", e.name);
         
         NumberNode f = get<NumberNode>(*(++d.args.begin()));
-        CHECK_CLOSE (-8.7, f.number, 0.00001);
+        EXPECT_FLOAT_EQ (-8.7, f.number);
       }
     }
   }
 }
 
-TEST (PrettyPrintingProducesSameParseTreeAndEqualityCheckingWorks)
+TEST (PrettyPrintingTest, ProducesEqualParseTree)
 {
   MNGLexer lexer ("Add (6, 7) { Main (Hi) P = -0.87 Voice { Volume (0) } }");
   MNGParser parser (&lexer, "test.cpp");
   list<FunctionNode> firsttree;
-  CHECK (parser.Parse (&firsttree));
+  ASSERT_TRUE (parser.Parse (&firsttree));
   
   stringstream s;
   s << firsttree;
@@ -223,25 +214,25 @@ TEST (PrettyPrintingProducesSameParseTreeAndEqualityCheckingWorks)
   lexer = MNGLexer (script);
   parser = MNGParser (&lexer, "test.cpp");
   list<FunctionNode> secondtree;
-  CHECK (parser.Parse (&secondtree));
+  ASSERT_TRUE (parser.Parse (&secondtree));
   
-  CHECK (equal(firsttree.begin(), firsttree.end(), secondtree.begin()));
+  ASSERT_TRUE (equal(firsttree.begin(), firsttree.end(), secondtree.begin()));
 }
 
-TEST (SampleScanner)
+TEST (SampleScannerTest, Works)
 {
   MNGLexer lexer ("Wave (Blah) Add (Wave(Hmm),6.7) Voice { Wave (BobbyJones) Wave\n(Blah) }");
   MNGParser parser (&lexer, "test.cpp");
   list<FunctionNode> tree;
-  CHECK (parser.Parse (&tree));
+  ASSERT_TRUE (parser.Parse (&tree));
   
   SampleScanner ss;
   ss.visit (tree);
   
   list<string> names = ss.getNames();
-  CHECK_EQUAL ((unsigned int)3, names.size());
+  EXPECT_EQ ((unsigned int)3, names.size());
   list<string>::iterator i = names.begin();
-  CHECK_EQUAL ("Blah", *i++);
-  CHECK_EQUAL ("Hmm", *i++);
-  CHECK_EQUAL ("BobbyJones", *i++);
+  EXPECT_EQ ("Blah", *i++);
+  EXPECT_EQ ("Hmm", *i++);
+  EXPECT_EQ ("BobbyJones", *i++);
 }
